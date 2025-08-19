@@ -268,3 +268,17 @@ BEGIN
     SET @ResultMessage = 'Done';
     RETURN;
 END;
+-------------------------------------------------------------------------------------
+-- sp_GetTotalUsers
+CREATE PROCEDURE sp_GetTotalUsers
+    @ResultMessage VARCHAR(50) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Calc the total number of users
+	SELECT COUNT(UserID) TotalUsers
+	FROM SystemUser
+
+    SET @ResultMessage = 'Done';
+END;
