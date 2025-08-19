@@ -156,12 +156,12 @@ BEGIN
         SET [State] = 'REMOVED'
         WHERE UserID = @UserID;
 
-        SET @ResultMessage = 'User removed';
+        SET @ResultMessage = 'Done';
         RETURN;
     END
     ELSE
     BEGIN
-        SET @ResultMessage = 'User not found';
+        SET @ResultMessage = 'Failed';
         RETURN;
     END
 END;
