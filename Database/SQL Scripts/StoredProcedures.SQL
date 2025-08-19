@@ -165,3 +165,41 @@ BEGIN
         RETURN;
     END
 END;
+-----------------------------------------------------------------------------------------------
+-- sp_LoginUser
+CREATE PROCEDURE sp_LoginUser
+    @Mail VARCHAR(100),
+    @Password VARCHAR(100),
+    @UserRole VARCHAR(50) OUTPUT,
+    @ResultMessage VARCHAR(50) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Check if user exists with given mail & password
+    IF EXISTS (
+        SELECT 1
+        FROM SystemUser
+        WHERE Mail = @Mail
+          AND [Password] = @Password
+          AND [State] = 'AVAILABLE'
+    )
+    BEGIN
+        -- Assign role name to output param
+        SELECT @UserRole = r.RoleName
+        FROM SystemUser usr
+        INNER JOIN Role r ON r.RoleID = usr.RoleID
+        WHERE usr.Mail = @Mail
+          AND usr.[Password] = @Password
+          AND usr.[State] = 'AVAILABLE';
+
+        SET @ResultMessage = 'DONE';
+        RETURN;
+    END
+    ELSE
+    BEGIN
+        SET @UserRole = NULL;
+        SET @ResultMessage = 'INVALID';
+        RETURN;
+    END
+END;
