@@ -16,7 +16,8 @@ CREATE TABLE SystemUser (
     ProfileName VARCHAR(50) UNIQUE,
     ProfilePhoto VARCHAR(255), -- URL
     DateOfCreation DATE,
-    RoleID INT NOT NULL
+    RoleID INT NOT NULL,
+    [State] VARCHAR(10) CHECK ([State] IN ('AVAILABLE', 'REMOVED')) DEFAULT 'AVAILABLE'
 );
 
 CREATE TABLE Role (
