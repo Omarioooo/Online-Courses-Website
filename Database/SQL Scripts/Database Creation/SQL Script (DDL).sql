@@ -52,7 +52,7 @@ CREATE TABLE Category (
 CREATE TABLE Course (
     CourseID INT PRIMARY KEY IDENTITY(1000, 1),
     Title VARCHAR(100) NOT NULL,
-    Description TEXT,
+    Description VARCHAR(MAX),
     Price DECIMAL(10, 2) NOT NULL DEFAULT 0,
     CourseLevel VARCHAR(50) CHECK (CourseLevel IN ('Beginner', 'Intermediate', 'Professional', 'General')) NOT NULL,
     CategoryID INT NOT NULL,
