@@ -1,17 +1,26 @@
 -- sp_GetAllUsers
 CREATE PROCEDURE sp_GetAllUsers
-    @ResultMessage VARCHAR(10) OUTPUT
+    @ResultMessage VARCHAR(50) OUTPUT
 AS
 BEGIN
-   -- Stop tracking of the num of affected rows
-   SET NOCOUNT ON;
+    -- Stop tracking of the num of affected rows
+    SET NOCOUNT ON;
 
-   -- Check if there are any users
-   IF EXISTS (SELECT 1 FROM SystemUser WHERE [State] = 'AVAILABLE')
+    -- Check if there are any users
+    IF EXISTS (SELECT 1 FROM SystemUser WHERE [State] = 'AVAILABLE')
     BEGIN
-        SELECT *
-        FROM SystemUser
-		WHERE [State] = 'AVAILABLE'
+        SELECT
+            usr.UserID,
+            usr.FirstName,
+            usr.LastName,
+            usr.Mail,
+            r.RoleName
+        FROM
+            SystemUser usr
+        INNER JOIN
+            Role r ON usr.RoleID = r.RoleID
+        WHERE
+            usr.[State] = 'AVAILABLE';
 
         SET @ResultMessage = 'Done';
         RETURN;
@@ -26,17 +35,33 @@ END;
 -- sp_GetUsersByRole
 CREATE PROCEDURE sp_GetUsersByRole
     @RoleID INT,
-    @ResultMessage VARCHAR(10) OUTPUT
+    @ResultMessage VARCHAR(50) OUTPUT
 AS
 BEGIN
     -- Stop tracking of the number of affected rows
     SET NOCOUNT ON;
 
-    IF EXISTS (SELECT 1 FROM [Role] WHERE RoleID = @RoleID)
+    IF EXISTS (
+        SELECT 1
+        FROM SystemUser usr
+        INNER JOIN Role r ON usr.RoleID = r.RoleID
+        WHERE usr.[State] = 'AVAILABLE'
+          AND r.RoleID = @RoleID
+    )
     BEGIN
-        SELECT *
-        FROM SystemUser
-        WHERE RoleID = @RoleID;
+        SELECT
+            usr.UserID,
+            usr.FirstName,
+            usr.LastName,
+            usr.Mail,
+            r.RoleName
+        FROM
+            SystemUser usr
+        INNER JOIN
+            Role r ON usr.RoleID = r.RoleID
+        WHERE
+            usr.[State] = 'AVAILABLE'
+          AND r.RoleID = @RoleID;
 
         SET @ResultMessage = 'Done';
         RETURN;
@@ -48,4 +73,69 @@ BEGIN
     END
 END;
 -----------------------------------------------------------------------------------------
--- sp_DeleteUser
+-- sp_GetUserByID
+CREATE PROCEDURE sp_GetUserByID
+    @UserID INT,
+    @UserState VARCHAR(50) OUTPUT,
+    @ResultMessage VARCHAR(50) OUTPUT
+AS
+BEGIN
+    -- Stop tracking of the number of affected rows
+    SET NOCOUNT ON;
+
+    DECLARE @State VARCHAR(10);
+
+    -- Check if the user exists
+    IF EXISTS (SELECT 1 FROM SystemUser WHERE UserID = @UserID)
+    BEGIN
+        -- Get state of the user
+        SELECT
+            @State = [State]
+        FROM
+            SystemUser
+        WHERE
+            UserID = @UserID;
+
+        -- Select user data
+        SELECT
+            usr.UserID,
+            usr.FirstName,
+            usr.LastName,
+            usr.BirthDate,
+            usr.Nationality,
+            usr.Mail,
+            usr.[Password],
+            usr.Bio,
+            usr.BankAccount,
+            usr.ProfileName,
+            usr.ProfilePhoto,
+            usr.DateOfCreation,
+            r.RoleName
+        FROM
+            SystemUser usr
+        INNER JOIN
+            Role r ON usr.RoleID = r.RoleID
+        WHERE
+            usr.UserID = @UserID;
+
+        -- Return the state of the user
+        IF (@State = 'AVAILABLE')
+        BEGIN
+            SET @UserState = 'User is available';
+        END
+        ELSE
+        BEGIN
+            SET @UserState = 'User is removed';
+        END
+
+        -- Always set ResultMessage here
+        SET @ResultMessage = 'Done';
+        RETURN;
+    END
+    ELSE
+    BEGIN
+        SET @UserState = NULL; -- nothing to return
+        SET @ResultMessage = 'User Not Found';
+        RETURN;
+    END
+END;
