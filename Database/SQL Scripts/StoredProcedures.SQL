@@ -139,3 +139,30 @@ BEGIN
         RETURN;
     END
 END;
+-----------------------------------------------------------------------------------------------
+-- sp_DeleteUser
+CREATE PROCEDURE sp_DeleteUser
+    @UserID INT,
+    @ResultMessage VARCHAR(50) OUTPUT
+AS
+BEGIN
+    -- Stop tracking of the number of affected rows
+    SET NOCOUNT ON;
+
+    -- Check if the user exists
+    IF EXISTS (SELECT 1 FROM SystemUser WHERE UserID = @UserID)
+    BEGIN
+        UPDATE SystemUser
+		SET [State] = 'REMOVED'
+		WHERE UserID = @UserID;
+
+        -- Always set ResultMessage here
+        SET @ResultMessage = 'Done';
+        RETURN;
+    END
+    ELSE
+    BEGIN
+        SET @ResultMessage = 'Failed';
+        RETURN;
+    END
+END;
