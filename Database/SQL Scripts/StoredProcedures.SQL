@@ -149,20 +149,19 @@ BEGIN
     -- Stop tracking of the number of affected rows
     SET NOCOUNT ON;
 
-    -- Check if the user exists
-    IF EXISTS (SELECT 1 FROM SystemUser WHERE UserID = @UserID)
+    -- Check if the user exists and is not already removed
+    IF EXISTS (SELECT 1 FROM SystemUser WHERE UserID = @UserID AND [State] <> 'REMOVED')
     BEGIN
         UPDATE SystemUser
-		SET [State] = 'REMOVED'
-		WHERE UserID = @UserID;
+        SET [State] = 'REMOVED'
+        WHERE UserID = @UserID;
 
-        -- Always set ResultMessage here
-        SET @ResultMessage = 'Done';
+        SET @ResultMessage = 'User removed';
         RETURN;
     END
     ELSE
     BEGIN
-        SET @ResultMessage = 'Failed';
+        SET @ResultMessage = 'User not found';
         RETURN;
     END
 END;
