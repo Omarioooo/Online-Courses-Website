@@ -199,7 +199,7 @@ BEGIN
     ELSE
     BEGIN
         SET @UserRole = NULL;
-        SET @ResultMessage = 'INVALID';
+        SET @ResultMessage = 'Failed';
         RETURN;
     END
 END;
