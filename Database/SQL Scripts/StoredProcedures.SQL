@@ -135,7 +135,7 @@ BEGIN
     ELSE
     BEGIN
         SET @UserState = NULL; -- nothing to return
-        SET @ResultMessage = 'User Not Found';
+        SET @ResultMessage = 'Failed';
         RETURN;
     END
 END;
