@@ -203,3 +203,68 @@ BEGIN
         RETURN;
     END
 END;
+--------------------------------------------------------------------------------
+-- sp_RegisterUser
+CREATE PROCEDURE sp_RegisterUser
+    @UserID INT,
+    @FirstName VARCHAR(25),
+    @LastName VARCHAR(25),
+    @BirthDate DATE,
+    @Nationality VARCHAR(25),
+    @Mail VARCHAR(100),
+    @Password VARCHAR(100),
+    @Bio TEXT,
+    @BankAccount VARCHAR(20),
+    @ProfileName VARCHAR(50),
+    @ProfilePhoto VARCHAR(255),
+    @DateOfCreation DATE,
+    @RoleID INT,
+    @ResultMessage VARCHAR(50) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Check if email already exists
+    IF EXISTS (SELECT 1 FROM SystemUser WHERE Mail = @Mail)
+    BEGIN
+        SET @ResultMessage = 'Failed';
+        RETURN;
+    END
+
+    -- Insert new user
+    INSERT INTO SystemUser (
+        UserID,
+        FirstName,
+        LastName,
+        BirthDate,
+        Nationality,
+        Mail,
+        [Password],
+        Bio,
+        BankAccount,
+        ProfileName,
+        ProfilePhoto,
+        DateOfCreation,
+        RoleID,
+        [State]
+    )
+    VALUES (
+        @UserID,
+        @FirstName,
+        @LastName,
+        @BirthDate,
+        @Nationality,
+        @Mail,
+        @Password,
+        @Bio,
+        @BankAccount,
+        @ProfileName,
+        @ProfilePhoto,
+        @DateOfCreation,
+        @RoleID,
+        'AVAILABLE' -- default state for new users
+    );
+
+    SET @ResultMessage = 'Done';
+    RETURN;
+END;
