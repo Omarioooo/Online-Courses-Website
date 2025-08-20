@@ -6,30 +6,25 @@ BEGIN
     -- Stop tracking of the num of affected rows
     SET NOCOUNT ON;
 
-    -- Check if there are any users
-    IF EXISTS (SELECT 1 FROM SystemUser WHERE [State] = 'AVAILABLE')
-    BEGIN
-        SELECT
-            usr.UserID,
-            usr.FirstName,
-            usr.LastName,
-            usr.Mail,
-            r.RoleName
-        FROM
-            SystemUser usr
-        INNER JOIN
-            Role r ON usr.RoleID = r.RoleID
-        WHERE
-            usr.[State] = 'AVAILABLE';
+    -- Get all available users with their roles
+    SELECT
+        usr.UserID,
+        usr.FirstName,
+        usr.LastName,
+        usr.Mail,
+        r.RoleName
+    FROM
+        SystemUser usr
+    INNER JOIN
+        Role r ON usr.RoleID = r.RoleID
+    WHERE
+        usr.[State] = 'AVAILABLE';
 
-        SET @ResultMessage = 'Done';
-        RETURN;
-    END
+    -- Success / No Data message
+    IF @@ROWCOUNT = 0
+        SET @ResultMessage = 'No available users found.';
     ELSE
-    BEGIN
-        SET @ResultMessage = 'Failed';
-        RETURN;
-    END
+        SET @ResultMessage = 'Success';
 END;
 ----------------------------------------------------------------------------------------
 -- sp_GetUsersByRole
@@ -38,39 +33,28 @@ CREATE PROCEDURE sp_GetUsersByRole
     @ResultMessage VARCHAR(50) OUTPUT
 AS
 BEGIN
-    -- Stop tracking of the number of affected rows
     SET NOCOUNT ON;
 
-    IF EXISTS (
-        SELECT 1
-        FROM SystemUser usr
-        INNER JOIN Role r ON usr.RoleID = r.RoleID
-        WHERE usr.[State] = 'AVAILABLE'
-          AND r.RoleID = @RoleID
-    )
-    BEGIN
-        SELECT
-            usr.UserID,
-            usr.FirstName,
-            usr.LastName,
-            usr.Mail,
-            r.RoleName
-        FROM
-            SystemUser usr
-        INNER JOIN
-            Role r ON usr.RoleID = r.RoleID
-        WHERE
-            usr.[State] = 'AVAILABLE'
-          AND r.RoleID = @RoleID;
+    -- Get all available users by role
+    SELECT
+        usr.UserID,
+        usr.FirstName,
+        usr.LastName,
+        usr.Mail,
+        r.RoleName
+    FROM
+        SystemUser usr
+    INNER JOIN
+        Role r ON usr.RoleID = r.RoleID
+    WHERE
+        usr.[State] = 'AVAILABLE'
+      AND r.RoleID = @RoleID;
 
-        SET @ResultMessage = 'Done';
-        RETURN;
-    END
+    -- Success / No Data message
+    IF @@ROWCOUNT = 0
+        SET @ResultMessage = 'No available users found for this role.';
     ELSE
-    BEGIN
-        SET @ResultMessage = 'Failed';
-        RETURN;
-    END
+        SET @ResultMessage = 'Success';
 END;
 -----------------------------------------------------------------------------------------
 -- sp_GetUserByID
@@ -80,63 +64,46 @@ CREATE PROCEDURE sp_GetUserByID
     @ResultMessage VARCHAR(50) OUTPUT
 AS
 BEGIN
-    -- Stop tracking of the number of affected rows
     SET NOCOUNT ON;
 
-    DECLARE @State VARCHAR(10);
+    -- Get user info + role
+    SELECT
+        usr.UserID,
+        usr.FirstName,
+        usr.LastName,
+        usr.BirthDate,
+        usr.Nationality,
+        usr.Mail,
+        usr.[Password],
+        usr.Bio,
+        usr.BankAccount,
+        usr.ProfileName,
+        usr.ProfilePhoto,
+        usr.DateOfCreation,
+        r.RoleName,
+        usr.[State] AS InternalState
+    FROM
+        SystemUser usr
+    INNER JOIN
+        Role r ON usr.RoleID = r.RoleID
+    WHERE
+        usr.UserID = @UserID;
 
-    -- Check if the user exists
-    IF EXISTS (SELECT 1 FROM SystemUser WHERE UserID = @UserID)
+    -- Handle outputs
+    IF @@ROWCOUNT = 0
     BEGIN
-        -- Get state of the user
-        SELECT
-            @State = [State]
-        FROM
-            SystemUser
-        WHERE
-            UserID = @UserID;
-
-        -- Select user data
-        SELECT
-            usr.UserID,
-            usr.FirstName,
-            usr.LastName,
-            usr.BirthDate,
-            usr.Nationality,
-            usr.Mail,
-            usr.[Password],
-            usr.Bio,
-            usr.BankAccount,
-            usr.ProfileName,
-            usr.ProfilePhoto,
-            usr.DateOfCreation,
-            r.RoleName
-        FROM
-            SystemUser usr
-        INNER JOIN
-            Role r ON usr.RoleID = r.RoleID
-        WHERE
-            usr.UserID = @UserID;
-
-        -- Return the state of the user
-        IF (@State = 'AVAILABLE')
-        BEGIN
-            SET @UserState = 'User is available';
-        END
-        ELSE
-        BEGIN
-            SET @UserState = 'User is removed';
-        END
-
-        -- Always set ResultMessage here
-        SET @ResultMessage = 'Done';
-        RETURN;
+        SET @UserState = NULL;
+        SET @ResultMessage = 'No user found with the given ID.';
     END
     ELSE
     BEGIN
-        SET @UserState = NULL; -- nothing to return
-        SET @ResultMessage = 'Failed';
-        RETURN;
+        -- Derive user state meaning
+        IF EXISTS (SELECT 1 FROM SystemUser WHERE UserID = @UserID AND [State] = 'AVAILABLE')
+            SET @UserState = 'User is available';
+        ELSE
+            SET @UserState = 'User is removed';
+
+        SET @ResultMessage = 'Success';
     END
 END;
 -----------------------------------------------------------------------------------------------
@@ -146,24 +113,19 @@ CREATE PROCEDURE sp_DeleteUser
     @ResultMessage VARCHAR(50) OUTPUT
 AS
 BEGIN
-    -- Stop tracking of the number of affected rows
     SET NOCOUNT ON;
 
-    -- Check if the user exists and is not already removed
-    IF EXISTS (SELECT 1 FROM SystemUser WHERE UserID = @UserID AND [State] <> 'REMOVED')
-    BEGIN
-        UPDATE SystemUser
-        SET [State] = 'REMOVED'
-        WHERE UserID = @UserID;
+    -- Soft delete (mark as REMOVED)
+    UPDATE SystemUser
+    SET [State] = 'REMOVED'
+    WHERE UserID = @UserID
+      AND [State] <> 'REMOVED';
 
-        SET @ResultMessage = 'Done';
-        RETURN;
-    END
+    -- Check result
+    IF @@ROWCOUNT = 0
+        SET @ResultMessage = 'No user found.';
     ELSE
-    BEGIN
-        SET @ResultMessage = 'Failed';
-        RETURN;
-    END
+        SET @ResultMessage = 'Success';
 END;
 -----------------------------------------------------------------------------------------------
 -- sp_LoginUser
@@ -176,48 +138,37 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Check if user exists with given mail & password
-    IF EXISTS (
-        SELECT 1
-        FROM SystemUser
-        WHERE Mail = @Mail
-          AND [Password] = @Password
-          AND [State] = 'AVAILABLE'
-    )
-    BEGIN
-        -- Assign role name to output param
-        SELECT @UserRole = r.RoleName
-        FROM SystemUser usr
-        INNER JOIN Role r ON r.RoleID = usr.RoleID
-        WHERE usr.Mail = @Mail
-          AND usr.[Password] = @Password
-          AND usr.[State] = 'AVAILABLE';
+    -- Try to get role directly
+    SELECT
+        @UserRole = r.RoleName
+    FROM
+        SystemUser usr
+    INNER JOIN
+        Role r ON r.RoleID = usr.RoleID
+    WHERE
+        usr.Mail = @Mail
+        AND usr.[Password] = @Password
+        AND usr.[State] = 'AVAILABLE';
 
-        SET @ResultMessage = 'DONE';
-        RETURN;
-    END
-    ELSE
-    BEGIN
-        SET @UserRole = NULL;
+    -- Check result
+    IF @UserRole IS NULL
         SET @ResultMessage = 'Failed';
-        RETURN;
-    END
+    ELSE
+        SET @ResultMessage = 'Success';
 END;
 --------------------------------------------------------------------------------
 -- sp_RegisterUser
 CREATE PROCEDURE sp_RegisterUser
-    @UserID INT,
     @FirstName VARCHAR(25),
     @LastName VARCHAR(25),
     @BirthDate DATE,
     @Nationality VARCHAR(25),
     @Mail VARCHAR(100),
     @Password VARCHAR(100),
-    @Bio TEXT,
-    @BankAccount VARCHAR(20),
-    @ProfileName VARCHAR(50),
-    @ProfilePhoto VARCHAR(255),
-    @DateOfCreation DATE,
+    @Bio TEXT = NULL,
+    @BankAccount VARCHAR(20) = NULL,
+    @ProfileName VARCHAR(50) = NULL,
+    @ProfilePhoto VARCHAR(255) = NULL,
     @RoleID INT,
     @ResultMessage VARCHAR(50) OUTPUT
 AS
@@ -227,13 +178,12 @@ BEGIN
     -- Check if email already exists
     IF EXISTS (SELECT 1 FROM SystemUser WHERE Mail = @Mail)
     BEGIN
-        SET @ResultMessage = 'Failed';
+        SET @ResultMessage = 'Failed: Email already exists';
         RETURN;
     END
 
     -- Insert new user
     INSERT INTO SystemUser (
-        UserID,
         FirstName,
         LastName,
         BirthDate,
@@ -249,7 +199,6 @@ BEGIN
         [State]
     )
     VALUES (
-        @UserID,
         @FirstName,
         @LastName,
         @BirthDate,
@@ -260,12 +209,10 @@ BEGIN
         @BankAccount,
         @ProfileName,
         @ProfilePhoto,
-        @DateOfCreation,
+        GETDATE(),   -- Use current date as creation date
         @RoleID,
-        'AVAILABLE' -- default state for new users
+        'AVAILABLE'
     );
 
     SET @ResultMessage = 'Done';
-    RETURN;
 END;
--------------------------------------------------------------------------------------
