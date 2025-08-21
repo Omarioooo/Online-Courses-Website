@@ -1,3 +1,4 @@
+-- Use LINQ for fillteration
 -- sp_GetTotalUsers
 CREATE PROCEDURE sp_GetTotalUsers
     @ResultMessage VARCHAR(50) OUTPUT
@@ -5,37 +6,36 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Calc the total number of users
-    SELECT COUNT(UserID) AS TotalUsers
+    -- Get Users with Roles and State
+    SELECT UserID, RoleID, [State]
     FROM SystemUser;
 
     -- Success / No Data message
-    IF @@ROWCOUNT = 0 OR (SELECT COUNT(UserID) FROM SystemUser) = 0
+    IF NOT EXISTS (SELECT 1 FROM SystemUser)
         SET @ResultMessage = 'No users found in the system.';
     ELSE
         SET @ResultMessage = 'Success';
 END;
 -------------------------------------------------------------------------------------
+-- Use LINQ for filtteration
 -- sp_GetTotalUsersByRole
 CREATE PROCEDURE sp_GetTotalUsersByRole
-    @RoleID INT,
     @ResultMessage VARCHAR(50) OUTPUT
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Calc the total number of users by role
-    SELECT COUNT(UserID) AS TotalUsers
-    FROM SystemUser
-    WHERE RoleID = @RoleID;
+    SELECT UserID, RoleID
+    FROM SystemUser;
 
     -- Success / No Data message
-    IF @@ROWCOUNT = 0 OR (SELECT COUNT(UserID) FROM SystemUser WHERE RoleID = @RoleID) = 0
-        SET @ResultMessage = 'No users found for the given role.';
+    IF NOT EXISTS (SELECT 1 FROM SystemUser)
+        SET @ResultMessage = 'No users found.';
     ELSE
         SET @ResultMessage = 'Success';
 END;
 ---------------------------------------------------------------------------------------
+-- Use Linq for filtteration
 -- sp_GetTotalCourses
 CREATE PROCEDURE sp_GetTotalCourses
     @ResultMessage VARCHAR(50) OUTPUT
@@ -43,12 +43,14 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Calc the total number of courses
-    SELECT COUNT(CourseID) AS TotalCourses
+    DECLARE @TotalCourses INT;
+
+    -- Get all courses
+    SELECT CourseID, [State]
     FROM Course;
 
-    -- Success / No Data message
-    IF (SELECT COUNT(CourseID) FROM Course) = 0
+    -- Set Result message
+    IF NOT EXISTS (SELECT 1 FROM Course)
         SET @ResultMessage = 'No courses found.';
     ELSE
         SET @ResultMessage = 'Success';
@@ -82,6 +84,8 @@ BEGIN
             SystemUser usr ON usr.UserID = cr.InstructorID
         LEFT JOIN
             Enrollment enr ON enr.CourseID = crs.CourseID
+        WHERE
+            crs.[State] = 'Approved'
         GROUP BY
             crs.CourseID,
             crs.Title,
@@ -149,6 +153,7 @@ BEGIN
             Enrollment enr ON enr.CourseID = crs.CourseID
         WHERE
             ctg.CategoryID = @CategoryID
+            AND crs.[State] = 'Approved'
         GROUP BY
             crs.CourseID,
             crs.Title,

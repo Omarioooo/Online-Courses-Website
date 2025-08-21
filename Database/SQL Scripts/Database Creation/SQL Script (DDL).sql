@@ -54,9 +54,10 @@ CREATE TABLE Course (
     Title VARCHAR(100) NOT NULL,
     Description VARCHAR(MAX),
     Price DECIMAL(10, 2) NOT NULL DEFAULT 0,
-    CourseLevel VARCHAR(50) CHECK (CourseLevel IN ('Beginner', 'Intermediate', 'Professional', 'General')) NOT NULL,
+    CourseLevel VARCHAR(50) NOT NULL CHECK (CourseLevel IN ('Beginner', 'Intermediate', 'Professional', 'General')),
     CategoryID INT NOT NULL,
-    CreationID INT NOT NULL
+    CreationID INT NOT NULL,
+    State VARCHAR(20) DEFAULT 'Pending' CHECK (State IN ('Pending', 'Approved', 'Rejected', 'Removed'))
 );
 
 CREATE TABLE CourseCreation (
