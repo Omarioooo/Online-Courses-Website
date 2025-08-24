@@ -18,3 +18,12 @@ INSERT INTO Category VALUES
 ('Personal Development'),
 ('Photography & Video'),
 ('Teaching & Academics')
+
+-- Insert Notification types
+INSERT INTO NotificationType VALUES
+('CourseSubmitted'),
+('CourseApproved'),
+('CourseRejected'),
+('NewEnrollment'),
+('CertificateGranted'),
+('CourseUpdated');
