@@ -95,7 +95,7 @@ END;
 -------------------------------------------------------------------------
 -- sp_GetQuestionsByQuiz
 CREATE PROCEDURE sp_GetQuestionsByQuiz
-    @QuizID INT
+    @QuizID INT,
     @ResultMessage VARCHAR(100) OUTPUT
 AS
 BEGIN
