@@ -53,7 +53,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    INSERT INTO Question (QuizID, QuesContent, ChooseA, ChooseB, ChooseC, ChooseD, CorrectChoice)
+    INSERT INTO Question (QuesContent, ChooseA, ChooseB, ChooseC, ChooseD, CorrectChoice)
     VALUES (@QuesContent, @ChooseA, @ChooseB, @ChooseC, @ChooseD, @CorrectChoice);
 
     SET @ResultMessage = 'Success';
