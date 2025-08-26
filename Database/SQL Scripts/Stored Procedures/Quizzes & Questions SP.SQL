@@ -21,7 +21,8 @@ END;
 ----------------------------------------------------------------------------
 -- sp_GetQuizBySection
 CREATE PROCEDURE sp_GetQuizBySection
-    @SectionID INT
+    @SectionID INT,
+	@ResultMessage VARCHAR(100) OUTPUT
 AS
 BEGIN
     SET NOCOUNT ON;
