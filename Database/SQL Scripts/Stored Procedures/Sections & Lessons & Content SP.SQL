@@ -93,32 +93,6 @@ BEGIN
         SET @ResultMessage = 'Error: ' + ERROR_MESSAGE();
     END CATCH
 END;
----------------------------------------------------------------------------
--- sp_DeleteLessonContent
-CREATE PROCEDURE sp_DeleteLessonContent
-    @ContentID INT,
-    @ResultMessage VARCHAR(100) OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    BEGIN TRY
-        BEGIN TRANSACTION;
-
-        -- مسح رابط المحتوى من LessonContent
-        DELETE FROM LessonContent WHERE ContentID = @ContentID;
-
-        -- مسح المحتوى نفسه
-        DELETE FROM Content WHERE ContentID = @ContentID;
-
-        COMMIT TRANSACTION;
-        SET @ResultMessage = 'Content deleted successfully.';
-    END TRY
-    BEGIN CATCH
-        ROLLBACK TRANSACTION;
-        SET @ResultMessage = 'Error: ' + ERROR_MESSAGE();
-    END CATCH
-END;
 ------------------------------------------------------------------
 -- sp_GetLessonsBySection
 CREATE PROCEDURE sp_GetLessonsBySection
