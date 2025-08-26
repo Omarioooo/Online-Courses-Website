@@ -35,10 +35,15 @@ BEGIN
 
         -- Get course price and instructor
         SELECT
-            @CoursePrice = Price,
-            @InstructorID = InstructorID
-        FROM Course
-        WHERE CourseID = @CourseID;
+            @CoursePrice = c.Price,
+            @InstructorID = cc.InstructorID
+        FROM 
+		    Course c
+		JOIN 
+		    CourseCreation cc ON cc.CreationID = c.CreationID
+        WHERE
+		    CourseID = @CourseID;
+		 
 
         -- Insert Enrollment
         INSERT INTO Enrollment (EnrollmentDate, StudentID, CourseID)
