@@ -51,7 +51,6 @@ BEGIN
     END TRY
     BEGIN CATCH
         SET @ResultMessage = 'Error: ' + ERROR_MESSAGE();
-        SET @NewLessonID = NULL;
     END CATCH
 END;
 -------------------------------------------------------------------------------
