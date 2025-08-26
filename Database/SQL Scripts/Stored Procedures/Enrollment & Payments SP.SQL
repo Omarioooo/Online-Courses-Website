@@ -96,7 +96,7 @@ BEGIN
 
             -- Insert Wallet Transactions (Platform Credit)
             INSERT INTO WalletTransaction (UserID, Amount, TransactionType, TransactionSource, Description, RelatedPaymentID, RelatedEnrollmentID)
-            VALUES (NULL, @PlatformCut, 'CREDIT', 'CourseEnrollment', 'Platform revenue credited', @PaymentID, @EnrollmentID);
+            VALUES (1, @PlatformCut, 'CREDIT', 'CourseEnrollment', 'Platform revenue credited', @PaymentID, @EnrollmentID);
 
             SET @ResultMessage = 'Success';
         END
