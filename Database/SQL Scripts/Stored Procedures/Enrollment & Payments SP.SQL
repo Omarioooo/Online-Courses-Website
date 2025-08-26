@@ -141,55 +141,14 @@ BEGIN
         FROM Payment p
         JOIN Enrollment e ON p.EnrollmentID = e.EnrollmentID
         JOIN Course c ON e.CourseID = c.CourseID
-        WHERE c.InstructorID = @InstructorID
+		JOIN CourseCreation cc ON cc.CreationID = c.CreationID
+        WHERE cc.InstructorID = @InstructorID
           AND p.Status = 'Completed';
 
         SET @ResultMessage = 'Success';
     END TRY
     BEGIN CATCH
         SET @TotalRevenue = 0;
-        SET @ResultMessage = 'Failed: ' + ERROR_MESSAGE();
-    END CATCH
-END;
---------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE sp_GetEnrollmentsByStudent
-    @StudentID INT,
-    @ResultMessage VARCHAR(200) OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    BEGIN TRY
-        -- Validate Student
-        IF NOT EXISTS (
-            SELECT 1
-            FROM SystemUser
-            WHERE UserID = @StudentID
-        )
-        BEGIN
-            SET @ResultMessage = 'Invalid StudentID.';
-            RETURN;
-        END;
-
-        -- Return course data
-        SELECT
-            c.Title AS CourseTitle,
-            c.[Description] AS CourseDescription,
-            c.CourseLevel,
-            cat.CategoryType AS CourseCategory,
-            u.FirstName + ' ' + u.LastName AS InstructorName,
-            e.EnrollmentDate
-        FROM Enrollment e
-        JOIN Course c ON e.CourseID = c.CourseID
-        JOIN Category cat ON c.CategoryID = cat.CategoryID
-        JOIN CourseCreation cc ON c.CreationID = cc.CreationID
-        JOIN SystemUser u ON cc.InstructorID = u.UserID
-        WHERE e.StudentID = @StudentID
-        ORDER BY e.EnrollmentDate DESC;
-
-        SET @ResultMessage = 'Success';
-    END TRY
-    BEGIN CATCH
         SET @ResultMessage = 'Failed: ' + ERROR_MESSAGE();
     END CATCH
 END;
