@@ -1,5 +1,5 @@
-CREATE DATABASE db_online_learning_platform;
-USE db_online_learning_platform;
+CREATE DATABASE db_online_courses_platform;
+USE db_online_courses_platform;
 
 -- =========================
 -- System & Roles
@@ -40,14 +40,6 @@ CREATE TABLE Category (
     ))
 );
 
-CREATE TABLE CourseCreation (
-    CreationID INT PRIMARY KEY IDENTITY(1000, 1),
-    CreationDate DATE DEFAULT GETDATE(),
-    LastUpdateDate DATE,
-    InstructorID INT NOT NULL,
-    FOREIGN KEY (InstructorID) REFERENCES SystemUser(UserID)
-);
-
 CREATE TABLE Course (
     CourseID INT PRIMARY KEY IDENTITY(1000, 1),
     Title VARCHAR(100) NOT NULL,
@@ -55,10 +47,12 @@ CREATE TABLE Course (
     Price DECIMAL(10, 2) NOT NULL DEFAULT 0,
     CourseLevel VARCHAR(50) NOT NULL CHECK (CourseLevel IN ('Beginner', 'Intermediate', 'Professional', 'General')),
     CategoryID INT NOT NULL,
-    CreationID INT NOT NULL,
+    CreationDate DATE DEFAULT GETDATE(),
+    LastUpdateDate DATE,
+    InstructorID INT NOT NULL,
     State VARCHAR(20) DEFAULT 'Pending' CHECK (State IN ('Pending', 'Approved', 'Rejected', 'Removed')),
     FOREIGN KEY (CategoryID) REFERENCES Category(CategoryID),
-    FOREIGN KEY (CreationID) REFERENCES CourseCreation(CreationID)
+    FOREIGN KEY (InstructorID) REFERENCES SystemUser(UserID)
 );
 
 -- =========================
@@ -80,7 +74,6 @@ CREATE TABLE Enrollment (
     FOREIGN KEY (CourseID) REFERENCES Course(CourseID),
     FOREIGN KEY (CertificateID) REFERENCES Certificate(CertificateID)
 );
-
 -- =========================
 -- Sections, Lessons & Content
 -- =========================
@@ -164,7 +157,6 @@ CREATE TABLE StudentQuizProgress (
     FOREIGN KEY (StudentID) REFERENCES SystemUser(UserID),
     FOREIGN KEY (QuizID) REFERENCES Quiz(QuizID)
 );
-
 -- =========================
 -- Reviews
 -- =========================
@@ -205,13 +197,10 @@ CREATE TABLE Notification (
 -- =========================
 -- Payments & Wallets
 -- =========================
-
 CREATE TABLE Payment (
     PaymentID INT PRIMARY KEY IDENTITY(4001, 1),
     EnrollmentID INT NOT NULL,
     Amount DECIMAL(10,2) NOT NULL,
-    PlatformCut DECIMAL(10,2) NOT NULL,
-    InstructorShare DECIMAL(10,2) NOT NULL,
     PaymentDate DATETIME DEFAULT GETDATE(),
     PaymentMethod VARCHAR(50) CHECK (PaymentMethod IN ('CreditCard', 'PayPal', 'BankTransfer')),
     Status VARCHAR(20) CHECK (Status IN ('Pending','Completed','Failed')) DEFAULT 'Pending',
@@ -235,7 +224,7 @@ CREATE TABLE VirtualPlatformWallet (
 
 CREATE TABLE WalletTransaction (
     TransactionID INT PRIMARY KEY IDENTITY(4001,1),
-    UserID INT NULL, -- null when platform transaction only
+    UserID INT, -- 4001 when platform transaction
     Amount DECIMAL(12,2),
     TransactionType VARCHAR(10) CHECK (TransactionType IN ('CREDIT','DEBIT')),
     TransactionStatus VARCHAR(20) CHECK (TransactionStatus IN ('Completed','Reversed','Pending')) DEFAULT 'Completed',
