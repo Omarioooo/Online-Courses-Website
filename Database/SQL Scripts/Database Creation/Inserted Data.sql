@@ -4,6 +4,10 @@ INSERT INTO Role VALUES
 ('Instructor'),
 ('Student')
 
+-- Create Platform Account
+INSERT INTO SystemUser (FirstName, Mail, [Password], RoleID) VALUES
+('Platform', 'platform@gmail.com', 'platform1234', 1001)
+
 -- Insert Categories
 INSERT INTO Category VALUES
 ('Business'),
