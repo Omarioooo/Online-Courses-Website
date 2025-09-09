@@ -12,13 +12,12 @@ CREATE TABLE Role (
 CREATE TABLE SystemUser (
     UserID INT PRIMARY KEY IDENTITY(1111, 1),
     FirstName VARCHAR(25) NOT NULL,
-    LastName VARCHAR(25) NOT NULL,
-    BirthDate DATE NOT NULL,
-    Nationality VARCHAR(25) NOT NULL,
+    LastName VARCHAR(25) NULL,
+    BirthDate DATE NULL,
+    Nationality VARCHAR(25) NULL,
     Mail VARCHAR(100) UNIQUE NOT NULL,
     [Password] VARCHAR(100) NOT NULL,
     Bio TEXT,
-    BankAccount VARCHAR(20) UNIQUE NULL,
     ProfileName VARCHAR(50) UNIQUE,
     ProfilePhoto VARCHAR(255), -- URL
     DateOfCreation DATE DEFAULT GETDATE(),
@@ -207,7 +206,7 @@ CREATE TABLE Payment (
     FOREIGN KEY (EnrollmentID) REFERENCES Enrollment(EnrollmentID)
 );
 
-CREATE TABLE VirtualInstructorWallet (
+CREATE TABLE VirtualWallet (
     WalletID INT PRIMARY KEY IDENTITY(4001,1),
     UserID INT UNIQUE,
     Balance DECIMAL(12,2) DEFAULT 0,
@@ -215,12 +214,6 @@ CREATE TABLE VirtualInstructorWallet (
     FOREIGN KEY (UserID) REFERENCES SystemUser(UserID)
 );
 
-CREATE TABLE VirtualPlatformWallet (
-    WalletID INT PRIMARY KEY IDENTITY(5000,1),
-    WalletName VARCHAR(100) DEFAULT 'MainPlatformWallet',
-    Balance DECIMAL(12,2) DEFAULT 0,
-    LastUpdated DATETIME DEFAULT GETDATE()
-);
 
 CREATE TABLE WalletTransaction (
     TransactionID INT PRIMARY KEY IDENTITY(4001,1),
